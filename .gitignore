@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.local
+
+# 授权云真实环境变量（示例文件 .env.example 仍提交）
+license-server/.env
+license-server/data/
+
+# 本机运行数据：session、tdata、二级密码、API Key、任务日志
+data/
+
+# 打包产物
+build/
+src-tauri/bin/telegram-backend/
+website/downloads/*.exe
+*.exe
+*.msi

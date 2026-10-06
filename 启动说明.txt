@@ -1,0 +1,44 @@
+纸翼 启动说明
+====================
+
+一、开发环境一键启动
+1. 双击项目根目录的 dev.bat
+   或执行：npm run dev:all
+2. 脚本会自动拉起：授权云(28180) + PostgreSQL(如有 Docker) + Tauri/本地后端
+3. 窗口打开后先登录授权账号（或注册），再在「设置」填 api_id / api_hash
+4. 再到「账号中心」导入 session（可同时选同名 .json）或扫码/验证码登录
+
+若登录报 Failed to fetch：说明授权云未启动。请重新跑 dev.bat，或手动：
+  cd license-server
+  docker compose up -d
+  run.bat
+
+二、导入协议号（推荐）
+- 同时选择成对的 xxx.session + xxx.json 上传
+- 列表「JSON」列显示「有」表示已关联元数据，耐用性更好
+
+三、防封建议
+- 群发/私信默认间隔 60–120 秒，新号先开「试发模式」
+- PeerFlood（临时防刷）≠ SpamBot 永久限制；触发后换号或隔几小时再试
+- 任务运行中不要登录/导入账号
+
+四、多开
+设置页 →「软件多开向导」可一键复制启动命令；或手动：
+  $env:PAPERWING_DATA = "E:\PaperWing-data-2"
+  cd 项目目录
+  .\dev.bat
+生产构建也可复制整个安装目录，各实例 data/ 天然隔离。
+
+五、更新
+设置页可「检查更新」。版本清单在授权云管理后台「版本」页维护。
+
+六、构建发布
+  npm run build:all
+若杀软误报：把安装目录加入白名单（本项目非易语言，误报概率低于竞品）。
+
+七、常见问题
+- 登录 Failed to fetch：授权云未开。用最新 dev.bat，或手动 license-server\run.bat
+- 后端连不上：确认 28147 端口未被占用，或先运行 npm run backend
+- 扫码失败：检查代理与 api_id/api_hash
+- 日志导出位置：data/日志/
+- 语音通话：实验功能，不保证接通

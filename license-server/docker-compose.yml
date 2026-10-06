@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: paperwing-license-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: paperwing
+      POSTGRES_PASSWORD: paperwing
+      POSTGRES_DB: paperwing_license
+    ports:
+      # 宿主机用非默认端口，避免和本机其它 PostgreSQL 抢 5432
+      - "25432:5432"
+    volumes:
+      - paperwing_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paperwing -d paperwing_license"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  paperwing_pg_data:

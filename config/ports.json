@@ -1,0 +1,18 @@
+{
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 28147
+  },
+  "frontend": {
+    "port": 28182,
+    "hmrPort": 28183
+  },
+  "license": {
+    "host": "127.0.0.1",
+    "port": 28180
+  },
+  "postgres": {
+    "host": "127.0.0.1",
+    "port": 25432
+  }
+}

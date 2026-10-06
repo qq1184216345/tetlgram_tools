@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>纸翼 ZHIYI · Telegram 营销自动化</title>
+  <meta name="description" content="纸翼是本地运行的 Telegram 营销桌面端：账号中心、群发加群、采集、私信、拉人、炒群、监控与筛群。卡密授权，业务数据不上传。" />
+  <link rel="icon" href="/assets/favicon.ico" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header" id="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top">
+        <img src="/assets/logo.png" alt="纸翼" />
+        <span>
+          <strong>纸翼</strong>
+          <span>ZHIYI / LOCAL OPS</span>
+        </span>
+      </a>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">菜单</button>
+      <nav class="site-nav" id="site-nav">
+        <a href="#features">功能</a>
+        <a href="#workflow">上手</a>
+        <a href="#pricing">授权</a>
+        <a href="#faq">问答</a>
+        <a class="btn btn-primary" href="#download">下载</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div>
+        <p class="kicker">Night hangar · Windows 桌面端</p>
+        <p class="stamp">纸翼夜航 / SESSION STAYS LOCAL</p>
+        <h1>纸翼<em>把 Telegram 运营收进一扇夜航窗</em></h1>
+        <p class="lede">账号、群发、采集、私信、拉人、炒群、监控、筛群——在你自己的电脑上跑。授权走云端卡密，群发内容与号池文件留在本地。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#download" data-download>下载 Windows 版</a>
+          <a class="btn btn-ghost" href="#features">看十个模块</a>
+        </div>
+        <div class="hero-meta">
+          <span>当前版本 <b data-version>0.1.0</b></span>
+          <span>架构 <b>Tauri + 本地后端</b></span>
+          <span>授权 <b>邮箱登录 / 卡密激活</b></span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img class="logo-orb" src="/assets/logo.png" alt="" />
+        <div class="app-frame" aria-hidden="true">
+          <div class="app-chrome">
+            <i class="dot"></i><i class="dot"></i><i class="dot"></i>
+            <span>纸翼 · TG 营销助手</span>
+          </div>
+          <div class="app-tabs">
+            <b class="on">账号中心</b>
+            <b>群发 / 加群</b>
+            <b>用户 / 群采集</b>
+            <b>私信</b>
+            <b>群拉人</b>
+            <b>炒群</b>
+          </div>
+          <div class="app-body">
+            <div class="pane">
+              <h4>已导入账号</h4>
+              <div class="row"><span>alpha.session</span><span class="tag">在线</span></div>
+              <div class="row"><span>bravo.session</span><span class="tag">在线</span></div>
+              <div class="row"><span>charlie.session</span><span>待命</span></div>
+              <div class="row"><span>delta.session</span><span class="tag">在线</span></div>
+            </div>
+            <div class="pane">
+              <h4>群发进度</h4>
+              <div class="row"><span>目标群</span><span>128</span></div>
+              <div class="row"><span>已发送</span><span>92</span></div>
+              <div class="row"><span>间隔</span><span>18–35s</span></div>
+              <div class="bar"><i></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker wrap" aria-hidden="true">
+      <div class="ticker-track">
+        <span>账号中心</span><span>群发 / 加群</span><span>成员采集</span><span>关键词搜群</span><span>批量私信</span><span>群拉人</span><span>炒群互动</span><span>监控回复</span><span>过滤筛群</span><span>tdata 转换</span>
+        <span>账号中心</span><span>群发 / 加群</span><span>成员采集</span><span>关键词搜群</span><span>批量私信</span><span>群拉人</span><span>炒群互动</span><span>监控回复</span><span>过滤筛群</span><span>tdata 转换</span>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>十个模块，一张工作台</h2>
+          <p>多开时数据目录互相隔离，任务日志可导出。Session 与同名 json 可一键配对导入，号池和任务都在你自己的电脑上跑。</p>
+        </div>
+        <div class="bento">
+          <article class="card wide reveal">
+            <span class="fold"></span>
+            <p class="num">01 / ACCOUNTS</p>
+            <h3>账号中心</h3>
+            <p>手动登录、导入 Telethon session，支持与同名 json 一键配对。可转 Telegram Desktop 的 tdata。批量改资料，单账号独立广告语。</p>
+          </article>
+          <article class="card reveal">
+            <p class="num">02</p>
+            <h3>群发 / 加群</h3>
+            <p>文本、图片、文件、转发频道消息（可藏源）。自动加群，间隔与休息可配。</p>
+          </article>
+          <article class="card reveal">
+            <p class="num">03</p>
+            <h3>采集</h3>
+            <p>抓群成员，按关键词搜公开群。结果落在本地「采集」目录。</p>
+          </article>
+          <article class="card reveal">
+            <p class="num">04</p>
+            <h3>私信</h3>
+            <p>按用户名或手机号批量私信，失败对象可导出，遇限制立即停号。</p>
+          </article>
+          <article class="card reveal">
+            <p class="num">05</p>
+            <h3>拉人 / 炒群</h3>
+            <p>批量邀请入群；多号自动互动，把冷群炒热。</p>
+          </article>
+          <article class="card reveal">
+            <p class="num">06</p>
+            <h3>监控与筛群</h3>
+            <p>关键词监控、自动回复；按条件过滤目标群。还有链接提取、评帖、克隆频道。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>四步开航</h2>
+          <p>先拿到安装包和卡密，再在软件里登录邮箱、激活授权。API 与代理在设置页配置，号池始终在你磁盘上。</p>
+        </div>
+        <div class="steps">
+          <article class="step reveal">
+            <b>01</b>
+            <h3>下载安装</h3>
+            <p>Windows 桌面端。若杀软误报，把安装目录加入白名单即可。</p>
+          </article>
+          <article class="step reveal">
+            <b>02</b>
+            <h3>注册登录</h3>
+            <p>邮箱验证码注册。同一账号新登录会踢掉旧会话，避免共享。</p>
+          </article>
+          <article class="step reveal">
+            <b>03</b>
+            <h3>激活卡密</h3>
+            <p>把购买的卡密贴进软件，时长累加到到期日。断网超过 24 小时会锁定任务。</p>
+          </article>
+          <article class="step reveal">
+            <b>04</b>
+            <h3>导入开跑</h3>
+            <p>填自己的 api_id / api_hash，配好代理，导入 session 后即可群发与采集。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>按时长授权</h2>
+          <p>一期走人工售卡：你付款后我们后台发卡，你在客户端激活。价格与到账方式请直接联系，开通后立刻可用。</p>
+        </div>
+        <div class="plans" id="plans">
+          <article class="plan-card reveal">
+            <h3>月卡</h3>
+            <p class="plan-days">30 天授权</p>
+            <p class="plan-price">咨询报价</p>
+            <p class="plan-note">试跑号池、验证流程</p>
+            <a class="btn btn-ghost" href="#contact">联系开通</a>
+          </article>
+          <article class="plan-card featured reveal">
+            <p class="plan-badge">常用</p>
+            <h3>季卡</h3>
+            <p class="plan-days">90 天授权</p>
+            <p class="plan-price">咨询报价</p>
+            <p class="plan-note">日常运营更划算</p>
+            <a class="btn btn-ghost" href="#contact">联系开通</a>
+          </article>
+          <article class="plan-card reveal">
+            <h3>年卡</h3>
+            <p class="plan-days">365 天授权</p>
+            <p class="plan-price">咨询报价</p>
+            <p class="plan-note">长期稳定授权</p>
+            <a class="btn btn-ghost" href="#contact">联系开通</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>起飞前会问的</h2>
+          <p>业务数据默认不出本机。授权云只处理账号、卡密和会话。</p>
+        </div>
+        <div class="faq-list">
+          <article class="faq-item open reveal">
+            <button type="button">和网页版机器人有什么不同？</button>
+            <p class="answer">纸翼是装在 Windows 上的桌面端，号池、任务、日志都在本地目录。适合要管一批 session、要看任务流水的团队，而不是把账号交给第三方网页。</p>
+          </article>
+          <article class="faq-item reveal">
+            <button type="button">数据会上云吗？</button>
+            <p class="answer">不会上传群发内容、私信目标或 session 文件。云端只校验登录态和卡密有效期。请自行保管 session，它等于账号完整登录态。</p>
+          </article>
+          <article class="faq-item reveal">
+            <button type="button">为什么要用我自己的 API？</button>
+            <p class="answer">公共 API 更容易触发风控。请到 my.telegram.org 申请自己的 api_id 与 api_hash，并给号池留足发送间隔。</p>
+          </article>
+          <article class="faq-item reveal">
+            <button type="button">可以多开吗？</button>
+            <p class="answer">可以。每个实例使用独立数据目录，session、配置和任务不会互相覆盖。设置页提供多开路径说明。</p>
+          </article>
+          <article class="faq-item reveal">
+            <button type="button">使用上要注意什么？</button>
+            <p class="answer">请遵守 Telegram 服务条款与当地法律法规，控制频率，不要用于骚扰或违法推广。软件是效率工具，账号安全仍取决于你的号龄、间隔与内容。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="download">
+      <div class="wrap contact-box" id="contact">
+        <div class="reveal">
+          <p class="kicker">Get the build</p>
+          <h2>下载纸翼，联系开通授权</h2>
+          <p>安装包与卡密请通过右侧邮箱联系领取。仅从本站或我们发出的链接下载，避免第三方来源。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#contact" data-download>获取 Windows 安装包</a>
+            <a class="btn btn-ghost" data-email>发邮件</a>
+          </div>
+        </div>
+        <div class="contact-list reveal">
+          <p>邮箱<br /><a data-email>nb@zhiyinb.cc</a></p>
+          <a data-telegram hidden>Telegram 客服</a>
+          <p>版本 <span data-version>0.1.0</span> · 仅官方渠道下载</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>© <span id="year">2026</span> 纸翼 ZHIYI</span>
+      <span>本地运行 · 卡密授权 · 请合法使用</span>
+    </div>
+  </footer>
+
+  <script src="/assets/config.js"></script>
+  <script src="/assets/site.js"></script>
+</body>
+</html>

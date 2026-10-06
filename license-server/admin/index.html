@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>纸翼授权管理后台</title>
+  <link rel="icon" href="/admin/assets/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/admin/assets/favicon.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="/admin/assets/logo.png" />
+  <link rel="stylesheet" href="/admin/assets/admin.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="login-view" class="panel">
+      <h1>纸翼授权管理</h1>
+      <p class="muted">管理员登录</p>
+      <label>邮箱<input id="login-email" type="email" placeholder="nb@zhiyinb.cc" /></label>
+      <label>密码<input id="login-password" type="password" /></label>
+      <button id="login-btn">登录</button>
+      <p id="login-error" class="error"></p>
+    </section>
+
+    <section id="main-view" class="hidden">
+      <header class="top">
+        <div>
+          <strong>纸翼授权管理</strong>
+          <span id="admin-email" class="muted"></span>
+        </div>
+        <button id="logout-btn" class="ghost">退出</button>
+      </header>
+
+      <nav class="tabs">
+        <button data-tab="users" class="active">用户</button>
+        <button data-tab="cards">卡密</button>
+        <button data-tab="version">版本</button>
+        <button data-tab="audit">审计</button>
+      </nav>
+
+      <div id="tab-users" class="tab">
+        <div class="row">
+          <input id="user-q" placeholder="搜索邮箱" />
+          <button id="user-search">搜索</button>
+          <button id="user-refresh">刷新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>邮箱</th><th>状态</th><th>到期</th><th>授权</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+
+      <div id="tab-cards" class="tab hidden">
+        <div class="card-gen panel-inner">
+          <h3>批量发卡</h3>
+          <div class="row">
+            <label>天数<input id="gen-days" type="number" value="30" min="1" /></label>
+            <label>数量<input id="gen-count" type="number" value="10" min="1" max="500" /></label>
+            <label>备注<input id="gen-note" placeholder="批次备注" /></label>
+            <button id="gen-btn">生成</button>
+          </div>
+          <textarea id="gen-result" rows="6" readonly placeholder="生成的卡密会显示在这里，可复制"></textarea>
+        </div>
+        <div class="row">
+          <select id="card-status">
+            <option value="">全部状态</option>
+            <option value="unused">未使用</option>
+            <option value="used">已使用</option>
+            <option value="revoked">已作废</option>
+          </select>
+          <button id="card-refresh">刷新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>卡密</th><th>天数</th><th>状态</th><th>备注</th><th>使用时间</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="cards-body"></tbody>
+        </table>
+      </div>
+
+      <div id="tab-version" class="tab hidden">
+        <div class="panel-inner">
+          <h3>桌面端版本管理</h3>
+          <p class="muted">客户端启动/设置页会请求 <code>GET /app/version</code> 比对版本；有新版本则提醒下载。</p>
+          <div class="version-form">
+            <label>最新版本号<input id="ver-version" placeholder="0.1.1" /></label>
+            <label>下载地址<input id="ver-url" placeholder="https://域名/downloads/纸翼-setup.exe" /></label>
+            <label>更新说明<textarea id="ver-notes" rows="4" placeholder="本次更新内容…"></textarea></label>
+            <label class="inline-check">
+              <input id="ver-force" type="checkbox" />
+              强制更新（低于此版本时拦截使用，必须去下载）
+            </label>
+            <div class="row">
+              <button id="ver-save">保存</button>
+              <button id="ver-refresh" class="ghost">刷新</button>
+            </div>
+            <p id="ver-meta" class="muted"></p>
+            <p id="ver-msg" class="ok"></p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-audit" class="tab hidden">
+        <div class="row"><button id="audit-refresh">刷新</button></div>
+        <table>
+          <thead>
+            <tr><th>时间</th><th>动作</th><th>操作者</th><th>详情</th></tr>
+          </thead>
+          <tbody id="audit-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <script src="/admin/assets/admin.js"></script>
+</body>
+</html>
