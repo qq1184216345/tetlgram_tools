@@ -1,12 +1,12 @@
 window.ZHIYI_SITE = {
   brand: "纸翼",
   brandEn: "ZHIYI",
-  version: "0.1.0",
+  version: "0.1.1",
   email: "nb@zhiyinb.cc",
   telegram: "",
   qq: "",
   wechat: "",
-  downloadUrl: "https://www.zhiyinb.cc/downloads/PaperWing-0.1.0-x64-setup.exe",
+  downloadUrl: "https://www.zhiyinb.cc/downloads/PaperWing-0.1.1-x64-setup.exe",
   downloadName: "纸翼 Windows 安装包",
   plans: [
     { id: "month", name: "月卡", days: 30, price: "咨询报价", note: "试跑号池、验证流程", featured: false },

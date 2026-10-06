@@ -64,7 +64,7 @@ function AppShell() {
   }
   const [backendOnline, setBackendOnline] = useState(false);
   const [accountCount, setAccountCount] = useState(0);
-  const [version, setVersion] = useState("0.1.0");
+  const [version, setVersion] = useState("0.1.1");
 
   useEffect(() => {
     let cancelled = false;
