@@ -98,7 +98,7 @@ class AppConfig(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-    version: str = "0.1.1"
+    version: str = "0.1.3"
     accounts: int = 0
 
 

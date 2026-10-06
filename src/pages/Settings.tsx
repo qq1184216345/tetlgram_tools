@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api, ApiPreset, AppConfig, DeviceProfile } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import { checkForAppUpdate } from "../lib/checkUpdate";
+import { startAppUpdate } from "../lib/installUpdate";
 import { useRegisterPageAction } from "../context/PageHeroContext";
 
 const PROXY_PRESETS = [
@@ -197,13 +198,16 @@ export function SettingsPage() {
         `发现新版本 ${result.remote}（当前 ${result.local}）`,
         result.force ? "此版本为强制更新" : "",
         result.notes ? `说明: ${result.notes}` : "",
-        result.url ? `下载: ${result.url}` : "请前往发布渠道获取安装包",
       ]
         .filter(Boolean)
         .join("\n");
-      toast.info(tip);
-      if (result.url && confirm(`${tip}\n\n是否打开下载地址？`)) {
-        window.open(result.url, "_blank", "noopener,noreferrer");
+      if (!result.url) {
+        toast.error(`${tip}\n请联系客服获取安装包`);
+        return;
+      }
+      if (confirm(`${tip}\n\n是否立即下载并安装？软件将关闭并打开安装程序。`)) {
+        toast.info("正在下载安装包...");
+        await startAppUpdate(result.url);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "检查更新失败");

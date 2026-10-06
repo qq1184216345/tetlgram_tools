@@ -273,6 +273,79 @@ fn start_backend(resource_dir: Option<PathBuf>, data_root: PathBuf) -> Option<Ch
     child
 }
 
+fn validate_update_url(raw: &str) -> Result<reqwest::Url, String> {
+    let url = reqwest::Url::parse(raw.trim()).map_err(|_| "下载地址无效".to_string())?;
+    if url.scheme() != "https" {
+        return Err("只允许从 HTTPS 地址更新".to_string());
+    }
+    let host = url.host_str().unwrap_or("");
+    if host != "www.zhiyinb.cc" && host != "zhiyinb.cc" {
+        return Err("下载地址不是官方站点".to_string());
+    }
+    let path = url.path().to_ascii_lowercase();
+    if !path.starts_with("/downloads/") || !path.ends_with(".exe") {
+        return Err("下载地址不是官方安装包".to_string());
+    }
+    Ok(url)
+}
+
+fn download_installer(raw_url: &str) -> Result<PathBuf, String> {
+    let url = validate_update_url(raw_url)?;
+    let client = reqwest::blocking::Client::builder()
+        .redirect(reqwest::redirect::Policy::limited(3))
+        .timeout(Duration::from_secs(180))
+        .build()
+        .map_err(|err| format!("无法发起下载: {err}"))?;
+    let response = client
+        .get(url)
+        .send()
+        .map_err(|err| format!("下载安装包失败: {err}"))?;
+    if !response.status().is_success() {
+        return Err(format!("下载安装包失败: HTTP {}", response.status()));
+    }
+    let bytes = response
+        .bytes()
+        .map_err(|err| format!("读取安装包失败: {err}"))?;
+    if bytes.len() < 1024 * 1024 {
+        return Err("安装包文件异常，已取消更新".to_string());
+    }
+    let dest = env::temp_dir().join("PaperWingUpdateSetup.exe");
+    std::fs::write(&dest, &bytes).map_err(|err| format!("保存安装包失败: {err}"))?;
+    Ok(dest)
+}
+
+fn launch_installer(path: &Path) -> Result<(), String> {
+    let script = format!(
+        "Start-Sleep -Seconds 2; Start-Process -FilePath '{}'",
+        path.display().to_string().replace('\'', "''")
+    );
+    let mut cmd = Command::new("powershell");
+    cmd.args([
+        "-NoProfile",
+        "-WindowStyle",
+        "Hidden",
+        "-Command",
+        &script,
+    ]);
+    #[cfg(windows)]
+    {
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd.spawn()
+        .map_err(|err| format!("无法启动安装程序: {err}"))?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    let dest = tauri::async_runtime::spawn_blocking(move || download_installer(&url))
+        .await
+        .map_err(|err| format!("更新任务中断: {err}"))??;
+    launch_installer(&dest)?;
+    app.exit(0);
+    Ok(())
+}
+
 fn stop_backend(state: &BackendProcess) {
     if let Ok(mut guard) = state.0.lock() {
         if let Some(mut child) = guard.take() {
@@ -286,6 +359,7 @@ fn stop_backend(state: &BackendProcess) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![install_update])
         .setup(|app| {
             let resource_dir = app.path().resource_dir().ok();
             let data_root = resolve_data_root(app.path().app_data_dir().ok());

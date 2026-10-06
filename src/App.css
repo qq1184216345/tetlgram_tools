@@ -827,7 +827,7 @@ th {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 920px;
+  width: 100%;
 }
 
 textarea,
@@ -840,7 +840,14 @@ select {
   font-size: 13px;
   outline: none;
   font-family: inherit;
-  resize: vertical;
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  min-width: 240px;
+  min-height: 96px;
+  resize: both;
 }
 
 textarea:focus,

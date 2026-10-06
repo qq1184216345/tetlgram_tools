@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { checkForAppUpdate } from "../lib/checkUpdate";
+import { startAppUpdate } from "../lib/installUpdate";
 
 const DISMISS_KEY = "paperwing_update_dismissed";
 
@@ -29,6 +30,8 @@ function dismiss(remote: string): void {
 
 export function UpdateBanner({ localVersion }: { localVersion: string }) {
   const [banner, setBanner] = useState<BannerState | null>(null);
+  const [installing, setInstalling] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -51,55 +54,50 @@ export function UpdateBanner({ localVersion }: { localVersion: string }) {
 
   if (!banner) return null;
 
-  if (banner.force) {
-    return (
-      <div className="update-force-overlay" role="alertdialog" aria-modal="true">
-        <div className="update-force-dialog">
-          <h3>必须更新到 {banner.remote}</h3>
-          <p className="muted">当前版本 {banner.local} 已停用，请下载安装新版本后继续使用。</p>
-          {banner.notes && <p className="update-notes">{banner.notes}</p>}
-          {banner.url ? (
-            <button
-              type="button"
-              className="license-primary"
-              onClick={() => window.open(banner.url, "_blank", "noopener,noreferrer")}
-            >
-              打开下载地址
-            </button>
-          ) : (
-            <p className="error">管理员尚未配置下载地址，请联系客服获取安装包。</p>
-          )}
-        </div>
-      </div>
-    );
+  async function handleInstall() {
+    if (!banner?.url || installing) return;
+    setInstalling(true);
+    setError("");
+    try {
+      await startAppUpdate(banner.url);
+    } catch (err) {
+      setInstalling(false);
+      setError(err instanceof Error ? err.message : "更新失败");
+    }
   }
 
   return (
-    <div className="update-banner" role="status">
-      <div className="update-banner-body">
-        <strong>发现新版本 {banner.remote}</strong>
-        <span className="muted">当前 {banner.local}</span>
-        {banner.notes && <p>{banner.notes}</p>}
-      </div>
-      <div className="update-banner-actions">
-        {banner.url && (
+    <div className="update-force-overlay" role="alertdialog" aria-modal="true">
+      <div className="update-force-dialog">
+        <h3>{banner.force ? `必须更新到 ${banner.remote}` : `发现新版本 ${banner.remote}`}</h3>
+        <p className="muted">当前版本 {banner.local}</p>
+        {banner.notes && <p className="update-notes">{banner.notes}</p>}
+        <p className="muted">
+          {banner.force
+            ? "点击下方按钮会下载安装包并打开安装程序，当前窗口将关闭。"
+            : "点击立即更新会下载安装包并打开安装程序，当前窗口将关闭。"}
+        </p>
+        {error && <p className="error">{error}</p>}
+        {banner.url ? (
+          <button type="button" className="license-primary" onClick={() => void handleInstall()} disabled={installing}>
+            {installing ? "正在下载安装包..." : "立即更新"}
+          </button>
+        ) : (
+          <p className="error">管理员尚未配置下载地址，请联系客服获取安装包。</p>
+        )}
+        {!banner.force && (
           <button
             type="button"
-            onClick={() => window.open(banner.url, "_blank", "noopener,noreferrer")}
+            className="secondary"
+            onClick={() => {
+              dismiss(banner.remote);
+              setBanner(null);
+            }}
+            disabled={installing}
           >
-            前往下载
+            稍后
           </button>
         )}
-        <button
-          type="button"
-          className="ghost"
-          onClick={() => {
-            dismiss(banner.remote);
-            setBanner(null);
-          }}
-        >
-          稍后
-        </button>
       </div>
     </div>
   );

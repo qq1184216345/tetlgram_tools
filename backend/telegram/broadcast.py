@@ -7,6 +7,7 @@ from typing import Awaitable, Callable
 
 from telethon import TelegramClient
 from telethon.errors import (
+    ChannelPrivateError,
     ChatWriteForbiddenError,
     FloodWaitError,
     PeerFloodError,
@@ -35,6 +36,40 @@ from backend.telegram.task_utils import (
     wait_for_schedule_start,
 )
 from backend.telegram.utils import is_already_joined, join_target, resolve_entity
+
+
+def format_group_ref(target: str) -> str:
+    raw = (target or "").strip()
+    if not raw:
+        return "未知群"
+    if raw.startswith("@") or "t.me/" in raw.lower() or "telegram.me/" in raw.lower():
+        return raw
+    if raw.startswith("-") or raw.lstrip("-").isdigit():
+        return f"群ID {raw}"
+    return raw
+
+
+async def describe_group(client: TelegramClient, target: str) -> str:
+    ref = format_group_ref(target)
+    try:
+        entity = await resolve_entity(client, target)
+        title = (getattr(entity, "title", None) or "").strip()
+        if not title:
+            title = " ".join(
+                part
+                for part in (
+                    getattr(entity, "first_name", None),
+                    getattr(entity, "last_name", None),
+                )
+                if part
+            ).strip()
+        username = getattr(entity, "username", None)
+        handle = f"@{username}" if username else ref
+        if title and handle and handle.lstrip("@") not in title.replace(" ", ""):
+            return f"{title}（{handle}）"
+        return title or handle
+    except Exception:
+        return ref
 
 
 def _prepare_message(
@@ -221,6 +256,7 @@ async def run_broadcast_loop(
     processed_since_rest = 0
     active_ids = list(account_ids)
     removed_ids: set[str] = set()
+    skip_explained: set[str] = set()
     effective_auto_join = False if (guest_mode or use_joined_groups) else auto_join
     gate = AccountIntervalGate(interval_min, interval_max)
 
@@ -230,7 +266,9 @@ async def run_broadcast_loop(
     if await wait_for_schedule_start(schedule_start_at, should_stop, on_log):
         return
 
-    async def drop_muted_account(account_id: str, reason: str) -> None:
+    spambot_tried: set[str] = set()
+
+    async def drop_restricted_account(account_id: str, why: str) -> None:
         async with lock:
             if account_id in removed_ids:
                 return
@@ -238,13 +276,31 @@ async def run_broadcast_loop(
             if account_id in active_ids:
                 active_ids.remove(account_id)
         set_broadcast_status(account_id, "muted")
-        on_log("warn", f"[{account_id}] 已从群发池剔除（{reason}）")
+        on_log("warn", f"[{account_id}] {why}")
         if remove_muted_accounts and on_remove_account:
             try:
                 await on_remove_account(account_id)
-                on_log("info", f"[{account_id}] 已删除禁言账号会话")
+                on_log("info", f"[{account_id}] 已删除该受限账号的登录会话")
             except Exception as exc:
-                on_log("error", f"[{account_id}] 删除禁言账号失败: {exc}")
+                on_log("error", f"[{account_id}] 删除受限账号失败: {exc}")
+
+    async def maybe_spambot(account_id: str) -> None:
+        if not auto_spambot_unban or account_id in spambot_tried:
+            return
+        spambot_tried.add(account_id)
+        try:
+            client = await get_client(account_id)
+            result = await try_spambot_unban(client)
+            on_log("warn", f"[{account_id}] {result}")
+        except Exception as exc:
+            on_log("error", f"[{account_id}] SpamBot 处理失败: {exc}")
+
+    async def group_label(account_id: str, target: str) -> str:
+        try:
+            client = await get_client(account_id)
+            return await describe_group(client, target)
+        except Exception:
+            return format_group_ref(target)
 
     async def process_one(account_id: str, target: str) -> None:
         nonlocal success, failed, processed_since_rest
@@ -266,7 +322,13 @@ async def run_broadcast_loop(
             if account_id in removed_ids or account_id not in active_ids:
                 failed += 1
                 on_progress(success + failed, success, failed)
-                on_log("warn", f"[{account_id}] 已从群发池剔除，跳过: {target}")
+                first_skip = account_id not in skip_explained
+                if first_skip:
+                    skip_explained.add(account_id)
+                    on_log(
+                        "info",
+                        f"[{account_id}] 本账号已因官方限制停发，排队中尚未发出的群会直接跳过，不再逐条列出",
+                    )
                 return
             if not active_ids:
                 on_log("error", "无可用账号，停止发送")
@@ -323,60 +385,101 @@ async def run_broadcast_loop(
                 async with lock:
                     failed += 1
                     processed_since_rest += 1
+                where = await group_label(account_id, target)
                 on_log(
                     "warn",
-                    f"[{account_id}] 双向限制/防刷（仅本目标失败，账号继续）: {target}",
+                    f"[{account_id}] 【双向限制】官方防刷，只能给互为联系人发"
+                    f"（不是群管理员禁言）。本条跳过，其它群继续: {where}",
                 )
-                if auto_spambot_unban:
-                    try:
-                        client = await get_client(account_id)
-                        result = await try_spambot_unban(client)
-                        on_log("warn", f"[{account_id}] {result}")
-                    except Exception as exc:
-                        on_log("error", f"[{account_id}] SpamBot 处理失败: {exc}")
+                await maybe_spambot(account_id)
                 armed = True
             except FloodWaitError as exc:
                 async with lock:
                     failed += 1
                     processed_since_rest += 1
-                on_log("warn", f"[{account_id}] 频繁限制 {exc.seconds}s，其它号继续: {target}")
+                on_log(
+                    "warn",
+                    f"[{account_id}] 【频繁限制】操作过快，需等待 {exc.seconds} 秒，其它号继续: {target}",
+                )
                 gate.block_for(account_id, exc.seconds)
                 armed = True
             except UserBannedInChannelError:
                 async with lock:
                     failed += 1
                     processed_since_rest += 1
-                on_log("error", f"[{account_id}] 账号被禁言: {target}")
-                if auto_spambot_unban:
-                    try:
-                        client = await get_client(account_id)
-                        result = await try_spambot_unban(client)
-                        on_log("warn", f"[{account_id}] {result}")
-                    except Exception as exc:
-                        on_log("error", f"[{account_id}] SpamBot 处理失败: {exc}")
-                await drop_muted_account(account_id, "群内禁言")
+                where = await group_label(account_id, target)
+                on_log(
+                    "error",
+                    f"[{account_id}] 【官方限制】该号被 Telegram 限制在超级群/频道发言"
+                    f"（不是「{where}」管理员禁言）",
+                )
+                await maybe_spambot(account_id)
+                await drop_restricted_account(
+                    account_id,
+                    "因官方限制，本任务已停用这个号群发，其它号继续",
+                )
                 armed = True
             except ChatWriteForbiddenError:
                 async with lock:
                     failed += 1
                     processed_since_rest += 1
-                on_log("error", f"[{account_id}] 无发言权限: {target}")
+                where = await group_label(account_id, target)
+                on_log(
+                    "error",
+                    f"[{account_id}] 【群内禁言】「{where}」管理员禁止发言或仅管理员可发。"
+                    "已跳过该群，其它群继续",
+                )
                 if exit_muted_groups:
                     try:
                         client = await get_client(account_id)
                         entity = await resolve_entity(client, target)
                         await client(LeaveChannelRequest(entity))
-                        on_log("info", f"[{account_id}] 已退出禁言群: {target}")
+                        on_log("info", f"[{account_id}] 已退出该群: {where}")
                     except Exception as exc:
-                        on_log("warn", f"[{account_id}] 退群失败: {exc}")
-                await drop_muted_account(account_id, "无发言权限")
+                        on_log("warn", f"[{account_id}] 退出「{where}」失败: {exc}")
                 armed = True
+            except ChannelPrivateError:
+                async with lock:
+                    failed += 1
+                    processed_since_rest += 1
+                where = await group_label(account_id, target)
+                on_log(
+                    "error",
+                    f"[{account_id}] 【无法访问】「{where}」已私密、被踢或未加入。"
+                    "已跳过该群，其它群继续",
+                )
             except Exception as exc:
                 async with lock:
                     failed += 1
                     processed_since_rest += 1
                 err = str(exc).lower()
-                if "peer id" in err or "peeridinvalid" in err:
+                where = format_group_ref(target)
+                if "userbannedinchannel" in err or "banned from sending messages in super" in err:
+                    on_log(
+                        "error",
+                        f"[{account_id}] 【官方限制】该号被 Telegram 限制在超级群/频道发言"
+                        f"（不是「{where}」管理员禁言）: {exc}",
+                    )
+                    await maybe_spambot(account_id)
+                    await drop_restricted_account(
+                        account_id,
+                        "因官方限制，本任务已停用这个号群发，其它号继续",
+                    )
+                    armed = True
+                elif "chatwriteforbidden" in err or "not allowed to write" in err:
+                    on_log(
+                        "error",
+                        f"[{account_id}] 【群内禁言】「{where}」管理员禁止发言或仅管理员可发。"
+                        "已跳过该群，其它群继续",
+                    )
+                elif "peerflood" in err:
+                    on_log(
+                        "warn",
+                        f"[{account_id}] 【双向限制】官方防刷（不是群管理员禁言）。"
+                        f"本条跳过，其它群继续: {where}",
+                    )
+                    armed = True
+                elif "peer id" in err or "peeridinvalid" in err:
                     on_log("error", f"[{account_id}] Peer ID 异常，跳过: {target}")
                 else:
                     on_log("error", f"[{account_id}] 发送失败 {target}: {exc}")
